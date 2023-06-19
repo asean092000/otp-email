@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  dev:
+    container_name: app_dev
+    image: nestjs-api-dev:1.0.0
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"
+    command: npm run start:debug
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    networks:
+      - nesjs-network
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+  prod:
+    container_name: app_prod
+    image: nestjs-api-prod:1.0.0
+    build:
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"
+    command: npm run start:prod
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    networks:
+      - nesjs-network
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: unless-stopped
+  db:
+    image: mysql:8.0
+    cap_add:
+      - SYS_NICE
+    restart: always
+    environment:
+      - TZ="Asia/Ho_Chi_Minh"
+      - MYSQL_DATABASE=nestjs_core
+      - MYSQL_ROOT_PASSWORD=mauFJcuf5dhRMQrjj
+    ports:
+      - "3306:3306"
+    networks:
+      - nesjs-network
+    volumes:
+      - db:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+networks:
+  nesjs-network:
+    driver: bridge
+volumes:
+  db:
+    driver: local
